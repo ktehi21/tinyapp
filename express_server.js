@@ -2,35 +2,33 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
+// set the view engine to ejs
+app.set('view engine', 'ejs');
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-// set the view engine to ejs
-app.set('view engine', 'ejs');
-// use res.render to load up an ejs view file
 
 // VER1) respond with "hello world" 
 // when a GET request is made to the homepage
 app.get("/", (req, res) => {
   // VER1) res.send("Hello!");
-  var mascots = [
-    { name: 'Sammy', organization: "DigitalOcean", birth_year: 2012},
-    { name: 'Tux', organization: "Linux", birth_year: 1996},
-    { name: 'Moby Dock', organization: "Docker", birth_year: 2013}
-  ];
-  var tagline = "No programming concept is complete without a cute animal mascot.";
 
-  res.render('pages/index', {
-    mascots: mascots,
-    tagline: tagline
-  });
+// use res.render to load up an ejs view file
+  res.render('urls_index');
 });
 
-// about page
-app.get('/about', function(req, res) {
-  res.render('pages/about');
+// urls page
+app.get('/urls', (req, res) => {
+  const templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
+});
+
+app.get("/hello", (req, res) => {
+  const templateVars = { greeting: "Hello World!" };
+  res.render("hello_world", templateVars);
 });
 
 /***** excersise to creat new path(page)
