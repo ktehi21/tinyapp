@@ -25,12 +25,19 @@ app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
+///// grammar
+// Route path: /user/:userId(\d+)
+// Request URL: http://localhost:3000/user/42
+// req.params: {"userId": "42"}
+app.get('/urls/:id', (req, res) => {
+  const templateVars = { id: req.params.id, longURL: "http://www.lighthouselabs.ca" };
+  res.render("urls_show", templateVars);
+});
 
 app.get("/hello", (req, res) => {
   const templateVars = { greeting: "Hello World!" };
   res.render("hello_world", templateVars);
 });
-
 /***** excersise to creat new path(page)
   app.get("/urls.json", (req, res) => {
     res.json(urlDatabase);
