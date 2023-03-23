@@ -6,6 +6,17 @@ const PORT = 8080; // default port 8080
 app.set('view engine', 'ejs');
 // Translate the Buffer data(encoded) into string that human readable
 app.use(express.urlencoded({ extended: true }));
+//Generate a random short URL ID (6 alphanumeric characters)
+const generateRandomString = function () {
+  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = ""
+  const charactersLength = characters.length;
+
+  for ( let i = 0; i < 6 ; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -32,19 +43,28 @@ app.get('/urls', (req, res) => {
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
+
 // when submit the add new URL request
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  // Log the POST request body to the console
+  // res.redirect("Ok"); // Respond with 'Ok' (we will replace this)
+  
+  const id = generateRandomString();
+  urlDatabase[id] = req.body.longURL;
+  res.redirect(`/urls/${id}`); 
+
 });
-//Generate a random shor URL ID (6 alphanumeric characters)
-function generateRandomString() {}
+
 ///// grammar
 // Route path: /user/:userId(\d+)
 // Request URL: http://localhost:3000/user/42
 // req.params: {"userId": "42"}
-app.get('/urls/:id', (req, res) => {
-  const templateVars = { id: req.params.id, longURL: "http://www.lighthouselabs.ca" };
+//↓ :id ':' means placeholder from req.params
+app.get('/urls/:id', (req, res) => { 
+  const shortId = req.params.id;
+  const longURL = urlDatabase[shortId];
+  const templateVars = { id: req.params.id, longURL };
+
   res.render("urls_show", templateVars);
 });
 
