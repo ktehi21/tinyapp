@@ -12,12 +12,12 @@ app.set('view engine', 'ejs');
 // Translate the Buffer data(encoded) into string that human readable
 app.use(express.urlencoded({ extended: true }));
 //Generate a random short URL ID (6 alphanumeric characters)
-const generateRandomString = function () {
+const generateRandomString = function (num) {
   const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let result = ""
   const charactersLength = characters.length;
 
-  for ( let i = 0; i < 6 ; i++ ) {
+  for ( let i = 0; i < num ; i++ ) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
@@ -72,7 +72,7 @@ app.post("/urls", (req, res) => {
   // Log the POST request body to the console
   // res.redirect("Ok"); // Respond with 'Ok' (we will replace this)
   
-  const id = generateRandomString();
+  const id = generateRandomString(6);
   urlDatabase[id] = req.body.longURL;
   res.redirect(`/urls/${id}`); 
 
@@ -116,7 +116,7 @@ app.post('/login', (req, res) => {
   res.cookie('username', userName);
   res.redirect(`/urls`); 
 });
-// Logout & setCookies
+// Logout & clearCookies
 app.post('/loginout', (req, res) => {
   const userName = req.body.username;
   res.clearCookie('username', userName);
@@ -129,11 +129,33 @@ app.get('/register', (req, res) => {
   const templateVars = { username: req.cookies["username"], email: req.body.email, password: req.body.password };
   res.render("register", templateVars);
 });
+app.post('/register', (req, res) => {
+  const id = generateRandomString(8);
+  const userEmail = req.body.email;
+  const userPassword = req.body.password;
+
+  users[id] = {"id": id, "email": userEmail, "password": userPassword}
+  res.cookie('username', id);
+  console.log(users);
+  res.redirect(`/urls`); 
+});
+
 
 
 
 /***** excersise to creat new path(page)
- 
+ const users = {
+  abc: {
+    id: 'abc',
+    email: 'a@a.com',
+    password: '1234'
+  },
+  def: {
+    id: 'def',
+    email: 'b@b.com',
+    password: '1234'
+  },
+};
  app.get("/hello", (req, res) => {
    const templateVars = { greeting: "Hello World!" };
    res.render("hello_world", templateVars);
