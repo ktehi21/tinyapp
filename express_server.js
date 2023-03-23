@@ -1,5 +1,10 @@
 const express = require("express");
+const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
+
 const app = express();
+app.use(morgan('dev'));
+app.use(cookieParser());
 const PORT = 8080; // default port 8080
 
 // set the view engine to ejs
@@ -17,7 +22,18 @@ const generateRandomString = function () {
   }
   return result;
 }
-
+const users = {
+  abc: {
+    id: 'abc',
+    email: 'a@a.com',
+    password: '1234'
+  },
+  def: {
+    id: 'def',
+    email: 'b@b.com',
+    password: '1234'
+  },
+};
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -35,7 +51,7 @@ app.get("/", (req, res) => {
 
 // urls page
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { username: req.cookies["username"], urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
@@ -97,7 +113,7 @@ app.get("/u/:id", (req, res) => {
 // setCookies
 app.post('/login', (req, res) => {
   const userName = req.body.username;
-  res.cookie('userName', userName);
+  res.cookie('username', userName);
   res.redirect(`/`); 
 });
 
