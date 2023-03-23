@@ -63,7 +63,8 @@ app.post('/urls/:id/delete', (req, res) => {
 
 // add new URL 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { username: req.cookies["username"] };
+  res.render("urls_new", templateVars);
 });
 
 // when submit the add new URL request
@@ -85,8 +86,7 @@ app.post("/urls", (req, res) => {
 app.get('/urls/:id', (req, res) => { 
   const shortId = req.params.id;
   const longURL = urlDatabase[shortId];
-  const templateVars = { id: req.params.id, longURL };
-
+  const templateVars = { id: req.params.id, longURL, username: req.cookies["username"] };
   // if client request non-exist short url?
   if(!longURL) {
     const templateVars = { error: "There is no web page" };
@@ -102,7 +102,7 @@ app.post('/urls/:id', (req, res) => {
   res.redirect(`/urls/${shortId}`); 
 });
 
-//redirect with shortURL
+// redirect with shortURL
 app.get("/u/:id", (req, res) => {
   const shortId = req.params.id;
   const longURL = urlDatabase[shortId];
@@ -110,13 +110,25 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
-// setCookies
+// Login & setCookies
 app.post('/login', (req, res) => {
   const userName = req.body.username;
   res.cookie('username', userName);
-  res.redirect(`/`); 
+  res.redirect(`/urls`); 
+});
+// Logout & setCookies
+app.post('/loginout', (req, res) => {
+  const userName = req.body.username;
+  res.clearCookie('username', userName);
+  res.redirect(`/urls`); 
 });
 
+// user resister
+app.get('/register', (req, res) => {
+
+  const templateVars = { username: req.cookies["username"], email: req.body.email, password: req.body.password };
+  res.render("register", templateVars);
+});
 
 
 
