@@ -40,7 +40,6 @@ app.get('/urls', (req, res) => {
 });
 
 // delete urls 
-// delete Employee.firstname;
 app.post('/urls/:id/delete', (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect(`/urls`); 
@@ -80,12 +79,24 @@ app.get('/urls/:id', (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+// update urls 
+app.post('/urls/:id', (req, res) => {
+  const shortId = req.params.id;
+  urlDatabase[shortId] = req.body.longURL;
+  res.redirect(`/urls/${shortId}`); 
+});
+
 app.get("/u/:id", (req, res) => {
   const shortId = req.params.id;
   const longURL = urlDatabase[shortId];
   // console.log("I am leaving now");
   res.redirect(longURL);
 });
+
+
+
+
+
 /***** excersise to creat new path(page)
  
  app.get("/hello", (req, res) => {
