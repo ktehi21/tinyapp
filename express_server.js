@@ -37,7 +37,8 @@ app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
   res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
-
+//Generate a random shor URL ID (6 alphanumeric characters)
+function generateRandomString() {}
 ///// grammar
 // Route path: /user/:userId(\d+)
 // Request URL: http://localhost:3000/user/42
