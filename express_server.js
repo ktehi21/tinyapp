@@ -68,11 +68,18 @@ app.get('/urls/:id', (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.get("/u/:id", (req, res) => {
+  const shortId = req.params.id;
+  const longURL = urlDatabase[shortId];
+  res.redirect(longURL);
+});
+
+/***** excersise to creat new path(page)
+
 app.get("/hello", (req, res) => {
   const templateVars = { greeting: "Hello World!" };
   res.render("hello_world", templateVars);
 });
-/***** excersise to creat new path(page)
   app.get("/urls.json", (req, res) => {
     res.json(urlDatabase);
   });
