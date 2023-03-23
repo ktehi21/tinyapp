@@ -65,21 +65,27 @@ app.get('/urls/:id', (req, res) => {
   const longURL = urlDatabase[shortId];
   const templateVars = { id: req.params.id, longURL };
 
+  // if client request non-exist short url?
+  if(!longURL) {
+    const templateVars = { error: "There is no web page" };
+    return res.render("no_page", templateVars);
+  }
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:id", (req, res) => {
   const shortId = req.params.id;
   const longURL = urlDatabase[shortId];
+  // console.log("I am leaving now");
   res.redirect(longURL);
 });
-
 /***** excersise to creat new path(page)
-
-app.get("/hello", (req, res) => {
-  const templateVars = { greeting: "Hello World!" };
-  res.render("hello_world", templateVars);
-});
+ 
+ app.get("/hello", (req, res) => {
+   const templateVars = { greeting: "Hello World!" };
+   res.render("hello_world", templateVars);
+ });
+ 
   app.get("/urls.json", (req, res) => {
     res.json(urlDatabase);
   });
