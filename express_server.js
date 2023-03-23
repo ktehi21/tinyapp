@@ -4,6 +4,8 @@ const PORT = 8080; // default port 8080
 
 // set the view engine to ejs
 app.set('view engine', 'ejs');
+// Translate the Buffer data(encoded) into string that human readable
+app.use(express.urlencoded({ extended: true }));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -25,6 +27,12 @@ app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
+
+// add new URL
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
 ///// grammar
 // Route path: /user/:userId(\d+)
 // Request URL: http://localhost:3000/user/42
