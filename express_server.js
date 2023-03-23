@@ -30,7 +30,7 @@ app.get("/", (req, res) => {
   // VER1) res.send("Hello!");
 
 // use res.render to load up an ejs view file
-  res.render('urls_index');
+  res.redirect(`/urls`); 
 });
 
 // urls page
@@ -39,13 +39,20 @@ app.get('/urls', (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// delete urls 
+// delete Employee.firstname;
+app.post('/urls/:id/delete', (req, res) => {
+  delete urlDatabase[req.params.id];
+  res.redirect(`/urls`); 
+});
+
 // add new URL 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
 // when submit the add new URL request
-app.post("/urls", (req, res) => {
+app.post("/urls", (req, res) => { 
   // Log the POST request body to the console
   // res.redirect("Ok"); // Respond with 'Ok' (we will replace this)
   
