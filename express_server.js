@@ -79,13 +79,14 @@ app.get('/urls/:id', (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// update urls 
+// Edit long url 
 app.post('/urls/:id', (req, res) => {
   const shortId = req.params.id;
   urlDatabase[shortId] = req.body.longURL;
   res.redirect(`/urls/${shortId}`); 
 });
 
+//redirect with shortURL
 app.get("/u/:id", (req, res) => {
   const shortId = req.params.id;
   const longURL = urlDatabase[shortId];
@@ -93,6 +94,12 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
+// setCookies
+app.post('/login', (req, res) => {
+  const userName = req.body.username;
+  res.cookie('userName', userName);
+  res.redirect(`/`); 
+});
 
 
 
