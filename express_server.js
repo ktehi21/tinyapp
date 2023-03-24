@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 const generateRandomString = function (num) {
   const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let result = ""
-  const charactersLength = characters.length;
+  const charactersLength = characters.length ;
 
   for ( let i = 0; i < num ; i++ ) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
@@ -51,7 +51,8 @@ app.get("/", (req, res) => {
 
 // urls page
 app.get('/urls', (req, res) => {
-  const templateVars = { username: req.cookies["username"], urls: urlDatabase };
+  const cookies = req.cookieParser;
+  const templateVars = { user: cookies, urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
@@ -63,7 +64,7 @@ app.post('/urls/:id/delete', (req, res) => {
 
 // add new URL 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies["username"] };
+  const templateVars = { user: users };
   res.render("urls_new", templateVars);
 });
 
@@ -86,7 +87,7 @@ app.post("/urls", (req, res) => {
 app.get('/urls/:id', (req, res) => { 
   const shortId = req.params.id;
   const longURL = urlDatabase[shortId];
-  const templateVars = { id: req.params.id, longURL, username: req.cookies["username"] };
+  const templateVars = { id: req.params.id, longURL, user: users };
   // if client request non-exist short url?
   if(!longURL) {
     const templateVars = { error: "There is no web page" };
@@ -112,35 +113,61 @@ app.get("/u/:id", (req, res) => {
 
 // Login & setCookies
 app.post('/login', (req, res) => {
-  const userName = req.body.username;
-  res.cookie('username', userName);
+  const userId = req.body.user_id;
+  res.cookie('user_id', userId);
+  
   res.redirect(`/urls`); 
 });
 // Logout & clearCookies
 app.post('/loginout', (req, res) => {
-  const userName = req.body.username;
-  res.clearCookie('username', userName);
+  const userId = req.body.user_id;
+  res.clearCookie('user_id', userId);
+
   res.redirect(`/urls`); 
 });
 
 // user resister
 app.get('/register', (req, res) => {
-
-  const templateVars = { username: req.cookies["username"], email: req.body.email, password: req.body.password };
+  const templateVars = { email: req.body.email, password: req.body.password };
   res.render("register", templateVars);
 });
-app.post('/register', (req, res) => {
-  const id = generateRandomString(8);
-  const userEmail = req.body.email;
-  const userPassword = req.body.password;
 
-  users[id] = {"id": id, "email": userEmail, "password": userPassword}
-  res.cookie('username', id);
+app.post('/register', (req, res) => {
+  const id = generateRandomString(6);
+  const email = req.body.email;
+  const password = req.body.password;
+  let foundUser = null;
+
+  //no input
+  if(!email || !password) {
+    res.status(400).send('Please provide an email AND a Password');
+    return;
+  }
+  for (const userId in users) {// check before regist
+    const user = users[userId];
+    if (user.email === email) { // users{email} === input email
+      res.status(400).send('Email already taken');
+      return;
+    } 
+  }
+  users[id] = {id, email, password};
   console.log(users);
+  
+  // foundUser = user;
+  // console.log("foundUser:", foundUser)
+  
+  
+  // if (foundUser.password !== password) {
+  //   res.status(400).("password do not match")
+  // }
+  // res.cookie('user', foundUser);
+
+
   res.redirect(`/urls`); 
 });
 
 
+///_헤더에 쿠키 있으면 그것만 뿌리기, 로그인 페이지 만들기
 
 
 /***** excersise to creat new path(page)

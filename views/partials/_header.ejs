@@ -18,15 +18,15 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
       
-      <% if(!username) { %>
+      <% if(true) { %>
       <form method="POST" action="/login" class="form-inline" style="margin-left: 50px;" >
-        <input type="text" name="username" placeholder="Username" class="form-control"/>
+        <input type="text" name="email" placeholder="Username" class="form-control"/>
         <button type="submit" style="border-color:#28a745; background-color: #5fc777;" class="btn btn-primary">Login</button>
         <button type="button" style="border-color:#28a745; background-color: #b8d635;" class="btn btn-primary"><a href="/register">Register</a> </button>
       </form>
       <% } else { %>
       <form method="POST" action="/loginout" class="form-inline d-flex justify-content-end" style="margin-left: 50px;" >
-        <p style="margin-bottom: 0;">Logged in as: <%= username %></p>
+        <p style="margin-bottom: 0;">Logged in as: s</p>
         <button type="submit" style="border-color:#28a745; background-color: #124b1f; margin-left: 10px;" class="btn btn-primary">Logout</button>
       </form>
       <% } %>
