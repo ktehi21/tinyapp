@@ -35,11 +35,8 @@ let templateVars = {};
 
 
 
-// VER1) respond with "hello world" 
 // when a GET request is made to the homepage
 app.get("/", (req, res) => {
-  // VER1) res.send("Hello!");
-
 // use res.render to load up an ejs view file
   res.redirect(`/urls`); 
 });
@@ -57,7 +54,6 @@ app.get('/urls', (req, res) => {
     res.status(400).send('If you want to see the short URL, please log-in <button type="button" style="border:none; background-color: #ffc107;" class="btn btn-primary"><a href="/login">Login</a></button>');
     return
   }
-
   
   res.render("urls_index", templateVars);
 });
@@ -113,11 +109,6 @@ app.post("/urls", (req, res) => {
 
 });
 
-///// grammar
-// Route path: /user/:userId(\d+)
-// Request URL: http://localhost:3000/user/42
-// req.params: {"userId": "42"}
-//↓ :id ':' means placeholder from req.params
 app.get('/urls/:id', (req, res) => { 
   const shortId = req.params.id;
   const longURL = urlDatabase[shortId]["longURL"];
@@ -128,7 +119,6 @@ app.get('/urls/:id', (req, res) => {
     return
   }
   
-
   // if client request non-exist short url?
   if(!longURL) {
     res.status(400).send("Sorry there is no page for that short URL");
@@ -150,7 +140,6 @@ app.post('/urls/:id', (req, res) => {
 app.get("/u/:id", (req, res) => {
   const shortId = req.params.id;
   const longURL = urlDatabase[shortId]["longURL"];
-  // console.log("I am leaving now");
   res.redirect(longURL);
 });
 
@@ -185,14 +174,11 @@ app.post('/login', (req, res) => {
   
   const result = bcrypt.compareSync(password, foundUser.password)
   if (!result) {
-  // if (foundUser.password !== password) {
     res.status(403).send("password do not match <a href='/login'>Try again</a>")
   }
 
   user = users[foundUser.id];
-  // console.log(user);
   req.session.user_id = foundUser.id
-  // res.cookie('user_id', foundUser.id);
   
   res.redirect(`/urls`); 
 });
@@ -201,7 +187,6 @@ app.post('/login', (req, res) => {
 // Logout & clearCookies
 app.post('/loginout', (req, res) => {
   const userId = req.body.user_id;
-  // res.clearCookie('user_id', userId);
   req.session = null
 
   res.redirect(`/urls`); 
@@ -231,13 +216,6 @@ app.post('/register', (req, res) => {
   if (getUserByEmail(email)) {
     return res.send("Email exists! Please <a href='/register'>Try again</a>")
   }
-  // for (const userId in users) {
-  //   const userEmail = users[userId].email;
-  //   if (userEmail === email) { // users{email} === input email
-  //     res.status(400).send('Email already taken');
-  //     return;
-  //   } 
-  // }
 
   user = {id, email, password:hash};
   users[id] = user;
@@ -246,7 +224,6 @@ app.post('/register', (req, res) => {
 
   res.redirect(`/urls`); 
 });
-
 
 
 
