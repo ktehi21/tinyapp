@@ -51,5 +51,6 @@ const urlsForUser = function(id) {
   }
   return userURL;
 }
+console.log(getUserByEmail("a@a.com").email);
 
 module.exports = {users, urlDatabase, getUserByEmail, urlsForUser};
