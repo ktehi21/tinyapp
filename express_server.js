@@ -213,44 +213,7 @@ app.post('/register', (req, res) => {
 });
 
 
-///_헤더에 쿠키 있으면 그것만 뿌리기, 로그인 페이지 만들기
 
-
-/***** excersise to creat new path(page)
- const users = {
-  abc: {
-    id: 'abc',
-    email: 'a@a.com',
-    password: '1234'
-  },
-  def: {
-    id: 'def',
-    email: 'b@b.com',
-    password: '1234'
-  },
-};
- app.get("/hello", (req, res) => {
-   const templateVars = { greeting: "Hello World!" };
-   res.render("hello_world", templateVars);
- });
- 
-  app.get("/urls.json", (req, res) => {
-    res.json(urlDatabase);
-  });
-
-  app.get("/hello", (req, res) => {
-    res.send("<html><body>Hello <b>World</b></body></html>\n");
-  }); //curl -i http://localhost:8080/hello
-
-  app.get("/set", (req, res) => {
-    const a = 1;
-    res.send(`a = ${a}`);
-  });
-  
-  app.get("/fetch", (req, res) => {
-    res.send(`a = ${a}`);
-  });
- */
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
