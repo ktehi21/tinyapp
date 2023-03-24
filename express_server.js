@@ -68,7 +68,6 @@ const urlsForUser = function(id) {
   }
   return userURL;
 }
-console.log(urlsForUser("def"));
 
 // VER1) respond with "hello world" 
 // when a GET request is made to the homepage
@@ -99,6 +98,18 @@ app.get('/urls', (req, res) => {
 
 // delete urls 
 app.post('/urls/:id/delete', (req, res) => {
+  const userID = req.cookies["user_id"];
+  const urlsOfUser = urlsForUser(userID);
+  templateVars = { 
+    user_id: userID, 
+    user, 
+    urls: urlsOfUser
+  };  
+  console.log(userID, "/",urlDatabase[req.params.id])
+  if (userID !== urlDatabase[req.params.id]["userID"]){
+    res.status(400).send("Only written user can delete");
+    return
+  }
   delete urlDatabase[req.params.id];
   res.redirect(`/urls`); 
 });
