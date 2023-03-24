@@ -34,11 +34,13 @@ const users = {
     password: '1234'
   },
 };
+let user = {};
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
+let templateVars = {};
 
 // VER1) respond with "hello world" 
 // when a GET request is made to the homepage
@@ -51,8 +53,8 @@ app.get("/", (req, res) => {
 
 // urls page
 app.get('/urls', (req, res) => {
-  const cookies = req.cookieParser;
-  const templateVars = { user: cookies, urls: urlDatabase };
+  templateVars = { user_id: req.cookies["user_id"], user, urls: urlDatabase };
+  console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
@@ -64,7 +66,7 @@ app.post('/urls/:id/delete', (req, res) => {
 
 // add new URL 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user: users };
+  templateVars = { user_id: req.cookies["user_id"], user, urls: urlDatabase };
   res.render("urls_new", templateVars);
 });
 
@@ -87,7 +89,7 @@ app.post("/urls", (req, res) => {
 app.get('/urls/:id', (req, res) => { 
   const shortId = req.params.id;
   const longURL = urlDatabase[shortId];
-  const templateVars = { id: req.params.id, longURL, user: users };
+  templateVars = { id: req.params.id, longURL, user_id: req.cookies["user_id"], user };
   // if client request non-exist short url?
   if(!longURL) {
     const templateVars = { error: "There is no web page" };
@@ -112,12 +114,45 @@ app.get("/u/:id", (req, res) => {
 });
 
 // Login & setCookies
+app.get('/login', (req, res) => {
+  templateVars = { user_id: req.cookies["user_id"], user, urls: urlDatabase };
+  res.render("login", templateVars);
+});
+
 app.post('/login', (req, res) => {
-  const userId = req.body.user_id;
-  res.cookie('user_id', userId);
+  const email = req.body.email;
+  const password = req.body.password;
+    
+  //no input
+  if(!email || !password) {
+    res.status(400).send('Please provide an email AND a Password');
+    return;
+  }
+  
+  let foundUser = null;
+  for (const userId in users) {
+    const logUser = users[userId];
+    if (logUser.email === email) { // users{email} === input email
+      // we found our user
+      foundUser = logUser;
+    } 
+  }
+
+  if (!foundUser) {
+    res.status(400).send("no user with that email found");
+  }
+  
+  
+  if (foundUser.password !== password) {
+    res.status(400).send("password do not match")
+  }
+  
+  res.cookie('user_id', foundUser.id);
   
   res.redirect(`/urls`); 
 });
+
+
 // Logout & clearCookies
 app.post('/loginout', (req, res) => {
   const userId = req.body.user_id;
@@ -128,7 +163,7 @@ app.post('/loginout', (req, res) => {
 
 // user resister
 app.get('/register', (req, res) => {
-  const templateVars = { email: req.body.email, password: req.body.password };
+  templateVars = { user_id: req.cookies["user_id"], user, urls: urlDatabase };
   res.render("register", templateVars);
 });
 
@@ -136,6 +171,7 @@ app.post('/register', (req, res) => {
   const id = generateRandomString(6);
   const email = req.body.email;
   const password = req.body.password;
+  
   let foundUser = null;
 
   //no input
@@ -143,25 +179,21 @@ app.post('/register', (req, res) => {
     res.status(400).send('Please provide an email AND a Password');
     return;
   }
-  for (const userId in users) {// check before regist
-    const user = users[userId];
-    if (user.email === email) { // users{email} === input email
+
+  // check the email
+  for (const userId in users) {
+    const userEmail = users[userId].email;
+    if (userEmail === email) { // users{email} === input email
       res.status(400).send('Email already taken');
       return;
     } 
   }
-  users[id] = {id, email, password};
-  console.log(users);
-  
-  // foundUser = user;
-  // console.log("foundUser:", foundUser)
-  
-  
-  // if (foundUser.password !== password) {
-  //   res.status(400).("password do not match")
-  // }
-  // res.cookie('user', foundUser);
 
+  user = {id, email, password};
+  res.cookie('user_id', user.id);
+
+  users[id] = {id, email, password};
+  console.log("user:",user,"users:", users);
 
   res.redirect(`/urls`); 
 });
