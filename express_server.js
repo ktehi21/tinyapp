@@ -12,12 +12,12 @@ app.set('view engine', 'ejs');
 // Translate the Buffer data(encoded) into string that human readable
 app.use(express.urlencoded({ extended: true }));
 //Generate a random short URL ID (6 alphanumeric characters)
-const generateRandomString = function (num) {
+const generateRandomString = function () {
   const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let result = ""
   const charactersLength = characters.length ;
 
-  for ( let i = 0; i < num ; i++ ) {
+  for ( let i = 0; i < 6 ; i++ ) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
@@ -35,9 +35,16 @@ const users = {
   },
 };
 let user = {};
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "aJ48lW"
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: "aJ48lW"
+  }
 };
 
 let templateVars = {};
@@ -54,7 +61,7 @@ app.get("/", (req, res) => {
 // urls page
 app.get('/urls', (req, res) => {
   templateVars = { user_id: req.cookies["user_id"], user, urls: urlDatabase };
-  console.log(templateVars);
+
   res.render("urls_index", templateVars);
 });
 
@@ -85,8 +92,14 @@ app.post("/urls", (req, res) => {
     res.status(400).send("If you want to make shorten URL, please log-in");
     return
   }
-  const id = generateRandomString(6);
-  urlDatabase[id] = req.body.longURL;
+  if(!req.body.longUrl) {
+    res.status(400).send('Please provide an URL address');
+    return;
+  }
+  const id = generateRandomString();
+  urlDatabase[id] = {};
+  urlDatabase[id]["longURL"] = req.body.longUrl;
+  urlDatabase[id]["userID"] = req.cookies["user_id"];
   res.redirect(`/urls/${id}`); 
 
 });
@@ -98,7 +111,7 @@ app.post("/urls", (req, res) => {
 //↓ :id ':' means placeholder from req.params
 app.get('/urls/:id', (req, res) => { 
   const shortId = req.params.id;
-  const longURL = urlDatabase[shortId];
+  const longURL = urlDatabase[shortId]["longURL"];
   templateVars = { id: req.params.id, longURL, user_id: req.cookies["user_id"], user };
 
 
@@ -112,15 +125,21 @@ app.get('/urls/:id', (req, res) => {
 
 // Edit long url 
 app.post('/urls/:id', (req, res) => {
+  templateVars = {user_id: req.cookies["user_id"], user };
+  if (!templateVars.user_id){
+    res.status(400).send("If you want to make shorten URL, please log-in");
+    return
+  }
+  
   const shortId = req.params.id;
-  urlDatabase[shortId] = req.body.longURL;
+  urlDatabase[shortId]["longURL"] = req.body.longUrl;
   res.redirect(`/urls/${shortId}`); 
 });
 
 // redirect with shortURL
 app.get("/u/:id", (req, res) => {
   const shortId = req.params.id;
-  const longURL = urlDatabase[shortId];
+  const longURL = urlDatabase[shortId]["longURL"];
   // console.log("I am leaving now");
   res.redirect(longURL);
 });
@@ -182,7 +201,7 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', (req, res) => {
-  const id = generateRandomString(6);
+  const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
   
@@ -207,7 +226,6 @@ app.post('/register', (req, res) => {
   res.cookie('user_id', user.id);
 
   users[id] = {id, email, password};
-  console.log("user:",user,"users:", users);
 
   res.redirect(`/urls`); 
 });
