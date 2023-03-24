@@ -1,6 +1,7 @@
 const express = require("express");
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const bcrypt = require("bcryptjs");
 
 const app = express();
 app.use(morgan('dev'));
@@ -22,6 +23,7 @@ const generateRandomString = function () {
   }
   return result;
 }
+
 const users = {
   abc: {
     id: 'abc',
@@ -218,8 +220,9 @@ app.post('/login', (req, res) => {
     res.status(403).send("no user with that email found");
   }
   
-  
-  if (foundUser.password !== password) {
+  const result = bcrypt.compareSync(password, foundUser.password)
+  if (!result) {
+  // if (foundUser.password !== password) {
     res.status(403).send("password do not match")
   }
 
@@ -249,7 +252,8 @@ app.post('/register', (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
-  
+  const salt = bcrypt.genSaltSync(10);
+  const hash = bcrypt.hashSync(password, salt);
   let foundUser = null;
 
   //no input
@@ -267,10 +271,10 @@ app.post('/register', (req, res) => {
     } 
   }
 
-  user = {id, email, password};
+  user = {id, email, password:hash};
+  users[id] = user;
   res.cookie('user_id', user.id);
-
-  users[id] = {id, email, password};
+  console.log(user);
 
   res.redirect(`/urls`); 
 });
