@@ -39,15 +39,36 @@ let user = {};
 const urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
-    userID: "aJ48lW"
+    userID: "abc"
   },
   "9sm5xK": {
     longURL: "http://www.google.com",
-    userID: "aJ48lW"
+    userID: "abc"
+  },
+  "s8df12": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "def"
+  },
+  "12gods": {
+    longURL: "http://www.google.com",
+    userID: "ddd"
   }
 };
 
 let templateVars = {};
+
+// returns the URLs where the userID is equal to the id of the currently logged-in user.
+
+const urlsForUser = function(id) {
+  const userURL = {};
+  for (let shortId in urlDatabase) {
+    if(urlDatabase[shortId].userID === id) {
+      userURL[shortId] = urlDatabase[shortId]
+    }
+  }
+  return userURL;
+}
+console.log(urlsForUser("def"));
 
 // VER1) respond with "hello world" 
 // when a GET request is made to the homepage
@@ -60,8 +81,19 @@ app.get("/", (req, res) => {
 
 // urls page
 app.get('/urls', (req, res) => {
-  templateVars = { user_id: req.cookies["user_id"], user, urls: urlDatabase };
+  const userID = req.cookies["user_id"];
+  const urlsOfUser = urlsForUser(userID);
+  templateVars = { 
+    user_id: userID, 
+    user, 
+    urls: urlsOfUser
+  };  
+  if (!templateVars.user_id){
+    res.status(400).send('If you want to see the short URL, please log-in <button type="button" style="border:none; background-color: #ffc107;" class="btn btn-primary"><a href="/login">Login</a></button>');
+    return
+  }
 
+  
   res.render("urls_index", templateVars);
 });
 
@@ -100,6 +132,7 @@ app.post("/urls", (req, res) => {
   urlDatabase[id] = {};
   urlDatabase[id]["longURL"] = req.body.longUrl;
   urlDatabase[id]["userID"] = req.cookies["user_id"];
+  console.log(urlDatabase);
   res.redirect(`/urls/${id}`); 
 
 });
@@ -114,6 +147,11 @@ app.get('/urls/:id', (req, res) => {
   const longURL = urlDatabase[shortId]["longURL"];
   templateVars = { id: req.params.id, longURL, user_id: req.cookies["user_id"], user };
 
+  if (!templateVars.user_id || !urlsForUser(shortId) ){
+    res.status(400).send("Only relavent user can change it");
+    return
+  }
+  
 
   // if client request non-exist short url?
   if(!longURL) {
@@ -126,11 +164,7 @@ app.get('/urls/:id', (req, res) => {
 // Edit long url 
 app.post('/urls/:id', (req, res) => {
   templateVars = {user_id: req.cookies["user_id"], user };
-  if (!templateVars.user_id){
-    res.status(400).send("If you want to make shorten URL, please log-in");
-    return
-  }
-  
+
   const shortId = req.params.id;
   urlDatabase[shortId]["longURL"] = req.body.longUrl;
   res.redirect(`/urls/${shortId}`); 
