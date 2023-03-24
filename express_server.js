@@ -67,6 +67,10 @@ app.post('/urls/:id/delete', (req, res) => {
 // add new URL 
 app.get("/urls/new", (req, res) => {
   templateVars = { user_id: req.cookies["user_id"], user, urls: urlDatabase };
+  // no login --> login page
+  if (!templateVars.user_id){
+    res.render("login", templateVars);
+  }
   res.render("urls_new", templateVars);
 });
 
@@ -75,6 +79,12 @@ app.post("/urls", (req, res) => {
   // Log the POST request body to the console
   // res.redirect("Ok"); // Respond with 'Ok' (we will replace this)
   
+  templateVars = { user_id: req.cookies["user_id"], user, urls: urlDatabase };
+  // no login --> HTML message
+  if (!templateVars.user_id){
+    res.status(400).send("If you want to make shorten URL, please log-in");
+    return
+  }
   const id = generateRandomString(6);
   urlDatabase[id] = req.body.longURL;
   res.redirect(`/urls/${id}`); 
@@ -90,10 +100,12 @@ app.get('/urls/:id', (req, res) => {
   const shortId = req.params.id;
   const longURL = urlDatabase[shortId];
   templateVars = { id: req.params.id, longURL, user_id: req.cookies["user_id"], user };
+
+
   // if client request non-exist short url?
   if(!longURL) {
-    const templateVars = { error: "There is no web page" };
-    return res.render("no_page", templateVars);
+    res.status(400).send("Sorry there is no page for that short URL");
+    return
   }
   res.render("urls_show", templateVars);
 });
@@ -146,7 +158,7 @@ app.post('/login', (req, res) => {
   if (foundUser.password !== password) {
     res.status(403).send("password do not match")
   }
-  
+
   user = users[foundUser.id];
   // console.log(user);
   res.cookie('user_id', foundUser.id);
