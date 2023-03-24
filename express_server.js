@@ -139,14 +139,16 @@ app.post('/login', (req, res) => {
   }
 
   if (!foundUser) {
-    res.status(400).send("no user with that email found");
+    res.status(403).send("no user with that email found");
   }
   
   
   if (foundUser.password !== password) {
-    res.status(400).send("password do not match")
+    res.status(403).send("password do not match")
   }
   
+  user = users[foundUser.id];
+  // console.log(user);
   res.cookie('user_id', foundUser.id);
   
   res.redirect(`/urls`); 
