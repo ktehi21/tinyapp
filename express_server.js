@@ -39,7 +39,6 @@ const users = {
     password: '$2a$10$m/TNVclJzLrkI9o58Ao.f.Wy5oQdzj68VjHMQaRVJeP.yv6P8RZ/G'
   }
 };
-let user = {};
 
 const urlDatabase = {
   "b2xVn2": {
@@ -60,10 +59,19 @@ const urlDatabase = {
   }
 };
 
+let user = {};
 let templateVars = {};
 
 // returns the URLs where the userID is equal to the id of the currently logged-in user.
+const getUserByEmail = function(email) {
+  const values = Object.values(users);
 
+  for (const user of values) {
+    if (user.email === email) {
+      return user;
+    }
+  }
+}
 const urlsForUser = function(id) {
   const userURL = {};
   for (let shortId in urlDatabase) {
@@ -141,7 +149,7 @@ app.post("/urls", (req, res) => {
     return
   }
   if(!req.body.longUrl) {
-    res.status(400).send('Please provide an URL address');
+    res.status(400).send('Please provide an URL address <a href="/urls">Try again</a>');
     return;
   }
   const id = generateRandomString();
@@ -205,7 +213,7 @@ app.post('/login', (req, res) => {
     
   //no input
   if(!email || !password) {
-    res.status(400).send('Please provide an email AND a Password');
+    res.status(400).send('Please provide an email AND a Password <a href="/login">Try again</a>');
     return;
   }
   
@@ -219,13 +227,13 @@ app.post('/login', (req, res) => {
   }
 
   if (!foundUser) {
-    res.status(403).send("no user with that email found");
+    res.status(403).send("no user with that email found <a href='/login'>Try again</a>");
   }
   
   const result = bcrypt.compareSync(password, foundUser.password)
   if (!result) {
   // if (foundUser.password !== password) {
-    res.status(403).send("password do not match")
+    res.status(403).send("password do not match <a href='/login'>Try again</a>")
   }
 
   user = users[foundUser.id];
@@ -262,23 +270,25 @@ app.post('/register', (req, res) => {
 
   //no input
   if(!email || !password) {
-    res.status(400).send('Please provide an email AND a Password');
+    res.status(400).send('Please provide an email AND a Password <a href="/register">Try again</a>');
     return;
   }
 
   // check the email
-  for (const userId in users) {
-    const userEmail = users[userId].email;
-    if (userEmail === email) { // users{email} === input email
-      res.status(400).send('Email already taken');
-      return;
-    } 
+  if (getUserByEmail(email)) {
+    return res.send("Email exists! Please <a href='/register'>Try again</a>")
   }
+  // for (const userId in users) {
+  //   const userEmail = users[userId].email;
+  //   if (userEmail === email) { // users{email} === input email
+  //     res.status(400).send('Email already taken');
+  //     return;
+  //   } 
+  // }
 
   user = {id, email, password:hash};
   users[id] = user;
   req.session.user_id = user.id
-  // res.cookie('user_id', user.id);
   console.log(user);
 
   res.redirect(`/urls`); 
