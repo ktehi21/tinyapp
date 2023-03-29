@@ -184,16 +184,20 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-    
+  const foundUser = getUserByEmail(email);
+  
+  if (!foundUser) {
+    return res.status(403).send("Email or Password doesn't match, please check again <a href='/login'>Try again</a>");
+  }
+
+  const result = bcrypt.compareSync(password, foundUser.password);
+
   if(!email || !password) {
-    res.status(400).send('Please provide an email AND a Password <a href="/login">Try again</a>');
+    res.status(400).send('Please provide an Email and a Password <a href="/login">Try again</a>');
     return;
   }
-  
-  let foundUser = getUserByEmail(email);
-  const result = bcrypt.compareSync(password, foundUser.password)
-  if (!foundUser || !result) {
-    res.status(403).send("Email or Password doesn't match, please check again <a href='/login'>Try again</a>");
+  if (!result) {
+    return res.status(403).send("Email or Password doesn't match, please check again <a href='/login'>Try again</a>");
   }
 
   const user = users[foundUser.id];
@@ -221,6 +225,7 @@ app.get('/register', (req, res) => {
   res.render("register", templateVars);
 });
 
+// Resister POST - 1 if: no input, 2 if check the email
 app.post('/register', (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
@@ -228,13 +233,11 @@ app.post('/register', (req, res) => {
   const salt = bcrypt.genSaltSync(10);
   const hash = bcrypt.hashSync(password, salt);
 
-  //no input
   if(!email || !password) {
     res.status(400).send('Please provide an email AND a Password <a href="/register">Try again</a>');
     return;
   }
 
-  // check the email
   if (getUserByEmail(email)) {
     return res.send("Email exists! Please <a href='/register'>Try again</a>")
   }
