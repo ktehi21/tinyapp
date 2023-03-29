@@ -86,10 +86,7 @@ app.post("/urls", (req, res) => {
     user,
     urls: urlDatabase 
   };  
-  // if (!templateVars.user){ // same as 102
-  //   res.status(400).send("If you want to make shorten URL, please <a href='/log-in'>log-in</a>");
-  //   return
-  // }
+
   if(!req.body.longUrl) {
     res.status(400).send('Please provide an URL address <a href="/urls">Try again</a>');
     return;
@@ -123,7 +120,6 @@ app.get('/urls/:id', (req, res) => {
     return
   }
   
-  // if client request non-exist short url?
   if(!longURL) {
     res.status(400).send("Sorry there is no page for that short URL");
     return
@@ -131,7 +127,7 @@ app.get('/urls/:id', (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// Edit long url 
+// Edit long url - 1 if : no input, 2 if : id doesn't match
 app.post('/urls/:id', (req, res) => {
   const longURL = req.body.longURL;
   const userID = req.session["user_id"];  
@@ -146,7 +142,6 @@ app.post('/urls/:id', (req, res) => {
   const shortId = req.params.id;
   console.log(longURL);
 
-  //no input
   if(!longURL) {
     res.status(400).send(`Please provide a long URL for edit <a href="javascript:window.history.back();">Try again</a>`);
     return;
@@ -185,23 +180,20 @@ app.get('/login', (req, res) => {
   res.render("login", templateVars);
 });
 
+// Login POST - 1 if: email or pwd no input, 2 if email or pwd not match
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
     
-  //no input
   if(!email || !password) {
     res.status(400).send('Please provide an email AND a Password <a href="/login">Try again</a>');
     return;
   }
   
   let foundUser = getUserByEmail(email);
-  if (!foundUser) {
-    res.status(403).send("no user with that email found <a href='/login'>Try again</a>");
-  }
   const result = bcrypt.compareSync(password, foundUser.password)
-  if (!result) {
-    res.status(403).send("password do not match <a href='/login'>Try again</a>")
+  if (!foundUser || !result) {
+    res.status(403).send("Email or Password doesn't match, please check again <a href='/login'>Try again</a>");
   }
 
   const user = users[foundUser.id];
