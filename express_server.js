@@ -1,7 +1,7 @@
 const express = require("express");
 const morgan = require('morgan');
 const cookieSession = require('cookie-session');
-const {users, urlDatabase, getUserByEmail, urlsForUser} = require('./helpers');
+const {users, urlDatabase, getUserByEmail, urlsForUser, generateRandomString} = require('./helpers');
 const bcrypt = require("bcryptjs");
 
 const app = express();
@@ -16,58 +16,42 @@ const PORT = 8080; // default port 8080
 app.set('view engine', 'ejs');
 // Translate the Buffer data(encoded) into string that human readable
 app.use(express.urlencoded({ extended: true }));
-//Generate a random short URL ID (6 alphanumeric characters)
-const generateRandomString = function () {
-  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let result = ""
-  const charactersLength = characters.length ;
-
-  for ( let i = 0; i < 6 ; i++ ) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-}
-
-
-
-
 
 
 // when a GET request is made to the homepage
 app.get("/", (req, res) => {
-// use res.render to load up an ejs view file
   res.redirect(`/urls`); 
 });
 
 // urls page
 app.get('/urls', (req, res) => {
-  const user = {};
   const userID = req.session["user_id"];
+  const user = users[userID];
+  if(!user) {
+    return res.status(401).send('If you want to see the short URL, please log-in <button type="button" style="border:none; background-color: #ffc107;" class="btn btn-primary"><a href="/login">Login</a></button>');
+  }
+
   const urlsOfUser = urlsForUser(userID);
   const templateVars = { 
-    user_id: userID, 
-    user, 
+    user,
     urls: urlsOfUser
   };  
-  if (!templateVars.user_id){
-    res.status(400).send('If you want to see the short URL, please log-in <button type="button" style="border:none; background-color: #ffc107;" class="btn btn-primary"><a href="/login">Login</a></button>');
-    return
-  }
-  
   res.render("urls_index", templateVars);
 });
 
 // delete urls 
 app.post('/urls/:id/delete', (req, res) => {
-  const user = {};
   const userID = req.session["user_id"];
+  const user = users[userID];
+  if(!user) {
+    return res.status(401).send('If you want to delete this short URL, please log-in <button type="button" style="border:none; background-color: #ffc107;" class="btn btn-primary"><a href="/login">Login</a></button>');
+  }
   const urlsOfUser = urlsForUser(userID);
   const templateVars = { 
-    user_id: userID, 
     user, 
     urls: urlsOfUser
   };  
-  if (userID !== urlDatabase[req.params.id]["userID"]){
+  if (userID !== urlDatabase[req.params.id]["userID"]) {
     res.status(400).send("Only written user can delete");
     return
   }
@@ -77,31 +61,35 @@ app.post('/urls/:id/delete', (req, res) => {
 
 // add new URL 
 app.get("/urls/new", (req, res) => {
-  const user = {};
-  const templateVars = { 
-    user_id: req.session["user_id"], 
-    user, 
-    urls: urlDatabase 
-  };
-  // no login --> login page
-  if (!templateVars.user_id){
-    res.render("login", templateVars);
+  const userID = req.session["user_id"];
+  const user = users[userID];
+  if(!user) {
+    return res.status(401).send('If you want to add the new short URL, please log-in <button type="button" style="border:none; background-color: #ffc107;" class="btn btn-primary"><a href="/login">Login</a></button>');
   }
+  const templateVars = { 
+    user,
+    urls: urlDatabase 
+  };  
+  
   res.render("urls_new", templateVars);
 });
 
 // when submit the add new URL request
 app.post("/urls", (req, res) => { 
-  const user = {};
-  const templateVars = { 
-    user_id: req.session["user_id"], 
-    user, 
-    urls: urlDatabase 
-  };
-  if (!templateVars.user_id){
-    res.status(400).send("If you want to make shorten URL, please log-in");
-    return
+  const userID = req.session["user_id"];
+  const user = users[userID];
+  if(!user) {
+    return res.status(401).send('If you want to add the new short URL, please log-in <button type="button" style="border:none; background-color: #ffc107;" class="btn btn-primary"><a href="/login">Login</a></button>');
   }
+  const urlsOfUser = urlsForUser(userID);
+  const templateVars = { 
+    user,
+    urls: urlDatabase 
+  };  
+  // if (!templateVars.user){ // same as 102
+  //   res.status(400).send("If you want to make shorten URL, please <a href='/log-in'>log-in</a>");
+  //   return
+  // }
   if(!req.body.longUrl) {
     res.status(400).send('Please provide an URL address <a href="/urls">Try again</a>');
     return;
@@ -109,23 +97,29 @@ app.post("/urls", (req, res) => {
   const id = generateRandomString();
   urlDatabase[id] = {};
   urlDatabase[id]["longURL"] = req.body.longUrl;
-  urlDatabase[id]["userID"] = req.session["user_id"];
+  urlDatabase[id]["userID"] = userID;
   res.redirect(`/urls/${id}`); 
 });
 
 app.get('/urls/:id', (req, res) => { 
-  const user = {};
+  const userID = req.session["user_id"];  
+  const user = users[userID];
+  if(!user) {
+    return res.status(401).send('If you want to add the new short URL, please log-in <button type="button" style="border:none; background-color: #ffc107;" class="btn btn-primary"><a href="/login">Login</a></button>');
+  }
   const shortId = req.params.id;
+  if (!urlDatabase[shortId]) {
+    res.status(400).send("URL Doesn't exist");
+    return
+  }
   const longURL = urlDatabase[shortId]["longURL"];
   const templateVars = { 
     id: req.params.id, 
     longURL, 
-    user_id: req.session["user_id"], 
-    user 
-  };
-
-  if (!templateVars.user_id || !urlsForUser(shortId) ){
-    res.status(400).send("Only relavent user can change it");
+    user
+  }; 
+  if (userID !== urlDatabase[req.params.id]["userID"]) {
+    res.status(400).send("Only written user can view");
     return
   }
   
@@ -139,32 +133,55 @@ app.get('/urls/:id', (req, res) => {
 
 // Edit long url 
 app.post('/urls/:id', (req, res) => {
-  const user = {};
+  const longURL = req.body.longURL;
+  const userID = req.session["user_id"];  
+  const user = users[userID];
+  if(!user) {
+    return res.status(401).send('If you want to edit this short URL, please log-in <button type="button" style="border:none; background-color: #ffc107;" class="btn btn-primary"><a href="/login">Login</a></button>');
+  }
   const templateVars = {
-    user_id: req.session["user_id"], 
-    user 
+    user
   };
-
+  
   const shortId = req.params.id;
-  urlDatabase[shortId]["longURL"] = req.body.longUrl;
+  console.log(longURL);
+
+  //no input
+  if(!longURL) {
+    res.status(400).send(`Please provide a long URL for edit <a href="javascript:window.history.back();">Try again</a>`);
+    return;
+  }
+  if (userID !== urlDatabase[req.params.id]["userID"]) {
+    res.status(400).send("Only written user can edit");
+    return
+  }
+  
+  urlDatabase[shortId]["longURL"] = req.body.longURL;
   res.redirect(`/urls/${shortId}`); 
 });
 
 // redirect with shortURL
 app.get("/u/:id", (req, res) => {
   const shortId = req.params.id;
+  if (!urlDatabase[shortId]) {
+    res.status(400).send("URL doesn't exist.");
+    return
+  }
   const longURL = urlDatabase[shortId]["longURL"];
   res.redirect(longURL);
 });
 
 // Login & setCookies
 app.get('/login', (req, res) => {
-  const user = {};
+  const userID = req.session["user_id"];
+  const user = users[userID];
+  if(user) {
+    return res.redirect("/urls");
+  }
   const templateVars = { 
-    user_id: req.session["user_id"], 
-    user, 
-    urls: urlDatabase 
-  };
+    user
+  };  
+
   res.render("login", templateVars);
 });
 
@@ -178,14 +195,7 @@ app.post('/login', (req, res) => {
     return;
   }
   
-  let foundUser = null;
-  for (const userId in users) {
-    const logUser = users[userId];
-    if (logUser.email === email) {
-      foundUser = logUser;
-    } 
-  }
-
+  let foundUser = getUserByEmail(email);
   if (!foundUser) {
     res.status(403).send("no user with that email found <a href='/login'>Try again</a>");
   }
@@ -195,27 +205,27 @@ app.post('/login', (req, res) => {
   }
 
   const user = users[foundUser.id];
-  req.session.user_id = user;
+  req.session.user_id = user.id;
   res.redirect(`/urls`); 
 });
 
 
 // Logout & clearCookies
 app.post('/loginout', (req, res) => {
-  const userId = req.body.user_id;
   req.session = null
-
   res.redirect(`/urls`); 
 });
 
 // user resister
 app.get('/register', (req, res) => {
-  const user = {};
+  const userID = req.session["user_id"];
+  const user = users[userID];
+  if(user) {
+    return res.redirect("/urls");
+  }
   const templateVars = { 
-    user_id: req.session["user_id"], 
-    user, 
-    urls: urlDatabase 
-  };
+    user
+  };  
   res.render("register", templateVars);
 });
 
@@ -225,7 +235,6 @@ app.post('/register', (req, res) => {
   const password = req.body.password;
   const salt = bcrypt.genSaltSync(10);
   const hash = bcrypt.hashSync(password, salt);
-  // let foundUser = null;
 
   //no input
   if(!email || !password) {
@@ -240,7 +249,7 @@ app.post('/register', (req, res) => {
 
   const user = {id, email, password:hash};
   users[id] = user;
-  console.log("user.id: ", user.id);
+  console.log("user: ", user);
   req.session.user_id = user.id
 
   res.redirect(`/urls`); 

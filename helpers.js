@@ -52,4 +52,16 @@ const urlsForUser = function(id) {
   return userURL;
 }
 
-module.exports = {users, urlDatabase, getUserByEmail, urlsForUser};
+//Generate a random short URL ID (6 alphanumeric characters)
+const generateRandomString = function () {
+  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = ""
+  const charactersLength = characters.length ;
+
+  for ( let i = 0; i < 6 ; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
+module.exports = {users, urlDatabase, getUserByEmail, urlsForUser, generateRandomString};
