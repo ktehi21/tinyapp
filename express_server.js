@@ -1,6 +1,7 @@
 const express = require("express");
 const morgan = require('morgan');
 const cookieSession = require('cookie-session');
+const {users, urlDatabase} = require('./database');
 const {getUserByEmail, urlsForUser, generateRandomString} = require('./helpers');
 const bcrypt = require("bcryptjs");
 
